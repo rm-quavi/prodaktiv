@@ -17,6 +17,7 @@ const mockTodo: Todo = {
   deadline: new Date('2024-12-31'),
   priority: 'Medium',
   status: 'Todo',
+  isDeleted: false,
   createdAt: new Date(),
   updatedAt: new Date(),
 }
@@ -32,6 +33,16 @@ describe('TodoItem', () => {
     expect(screen.getByText('Test Todo')).toBeInTheDocument()
     expect(screen.getByText('Test description')).toBeInTheDocument()
     expect(screen.getByText('Dec 31, 2024')).toBeInTheDocument()
+    expect(screen.getByText('Medium')).toBeInTheDocument()
+  })
+
+  it('renders todo item without deadline correctly', () => {
+    const todoWithoutDeadline = { ...mockTodo, deadline: null }
+    render(<TodoItem todo={todoWithoutDeadline} />)
+    
+    expect(screen.getByText('Test Todo')).toBeInTheDocument()
+    expect(screen.getByText('Test description')).toBeInTheDocument()
+    expect(screen.queryByText('Dec 31, 2024')).not.toBeInTheDocument()
     expect(screen.getByText('Medium')).toBeInTheDocument()
   })
 
@@ -122,6 +133,18 @@ describe('TodoItem', () => {
       status: 'Done' as const 
     }
     render(<TodoItem todo={completedOverdueTodo} />)
+    
+    const card = screen.getByText('Test Todo').closest('[class*="border-red-200"]')
+    expect(card).not.toBeInTheDocument()
+  })
+
+  it('does not show overdue styling when todo has no deadline', () => {
+    const todoWithoutDeadline = { 
+      ...mockTodo, 
+      deadline: null,
+      status: 'Todo' as const 
+    }
+    render(<TodoItem todo={todoWithoutDeadline} />)
     
     const card = screen.getByText('Test Todo').closest('[class*="border-red-200"]')
     expect(card).not.toBeInTheDocument()

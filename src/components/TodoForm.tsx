@@ -18,7 +18,7 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
   const [formData, setFormData] = useState<TodoFormData>({
     title: '',
     description: '',
-    deadline: new Date(),
+    deadline: null,
     priority: 'Medium',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -31,12 +31,12 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
     try {
       await addTodo(userId, {
         ...formData,
-        deadline: new Date(formData.deadline),
+        deadline: formData.deadline ? new Date(formData.deadline) : null,
       })
       setFormData({
         title: '',
         description: '',
-        deadline: new Date(),
+        deadline: null,
         priority: 'Medium',
       })
       onClose()
@@ -47,7 +47,7 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
     }
   }
 
-  const handleInputChange = (field: keyof TodoFormData, value: string | Date) => {
+  const handleInputChange = (field: keyof TodoFormData, value: string | Date | null) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -78,26 +78,26 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
           
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-              Description
+              Description (optional)
             </label>
             <Input
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Enter description (optional)"
+              placeholder="Enter description"
               className="modern-input"
             />
           </div>
           
           <div>
             <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-2">
-              Deadline
+              Deadline (optional)
             </label>
             <Input
               id="deadline"
               type="datetime-local"
               value={formData.deadline instanceof Date ? formData.deadline.toISOString().slice(0, 16) : ''}
-              onChange={(e) => handleInputChange('deadline', new Date(e.target.value))}
+              onChange={(e) => handleInputChange('deadline', e.target.value ? new Date(e.target.value) : null)}
               className="modern-input"
             />
           </div>

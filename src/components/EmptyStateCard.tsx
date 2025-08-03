@@ -7,8 +7,6 @@ interface EmptyStateCardProps {
 }
 
 export function EmptyStateCard({ type, onAddClick }: EmptyStateCardProps) {
-  const isTasks = type === 'tasks'
-  
   const config = {
     tasks: {
       icon: CheckCircle,

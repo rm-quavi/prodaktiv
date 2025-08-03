@@ -61,7 +61,7 @@ export function TodoItem({ todo }: TodoItemProps) {
     }).format(date)
   }
 
-  const isOverdue = todo.status === 'Todo' && new Date() > todo.deadline
+  const isOverdue = todo.status === 'Todo' && todo.deadline && new Date() > todo.deadline
 
   return (
     <Card className={`modern-card transition-all duration-200 hover:shadow-md ${
@@ -101,10 +101,12 @@ export function TodoItem({ todo }: TodoItemProps) {
               )}
               
               <div className="flex items-center space-x-4 mt-4">
-                <div className="flex items-center space-x-2 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                  <Calendar className="h-3 w-3" />
-                  <span>{formatDate(todo.deadline)}</span>
-                </div>
+                {todo.deadline && (
+                  <div className="flex items-center space-x-2 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                    <Calendar className="h-3 w-3" />
+                    <span>{formatDate(todo.deadline)}</span>
+                  </div>
+                )}
                 
                 <div className={`flex items-center space-x-2 text-xs px-3 py-1 rounded-full ${priorityBgColors[todo.priority]}`}>
                   <Flag className={`h-3 w-3 ${priorityColors[todo.priority]}`} />

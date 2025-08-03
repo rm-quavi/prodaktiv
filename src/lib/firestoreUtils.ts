@@ -3,7 +3,6 @@ import {
   doc, 
   addDoc, 
   updateDoc, 
-  deleteDoc, 
   onSnapshot, 
   query, 
   where, 
@@ -20,6 +19,7 @@ export async function addTodo(userId: string, todoData: TodoFormData): Promise<s
     userId,
     ...todoData,
     status: 'Todo',
+    isDeleted: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -36,13 +36,17 @@ export async function updateTodo(todoId: string, updates: Partial<Todo>): Promis
 
 export async function deleteTodo(todoId: string): Promise<void> {
   const todoRef = doc(db, 'todo', todoId)
-  await deleteDoc(todoRef)
+  await updateDoc(todoRef, {
+    isDeleted: true,
+    updatedAt: serverTimestamp(),
+  })
 }
 
 export function subscribeToTodos(userId: string, callback: (todos: Todo[]) => void) {
   const q = query(
     collection(db, 'todo'),
     where('userId', '==', userId),
+    where('isDeleted', '==', false),
     orderBy('createdAt', 'desc')
   )
   
@@ -69,6 +73,7 @@ export async function addHabit(userId: string, habitData: HabitFormData): Promis
     ...habitData,
     status: 'Todo',
     streak: 0,
+    isDeleted: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -85,13 +90,17 @@ export async function updateHabit(habitId: string, updates: Partial<Habit>): Pro
 
 export async function deleteHabit(habitId: string): Promise<void> {
   const habitRef = doc(db, 'habit', habitId)
-  await deleteDoc(habitRef)
+  await updateDoc(habitRef, {
+    isDeleted: true,
+    updatedAt: serverTimestamp(),
+  })
 }
 
 export function subscribeToHabits(userId: string, callback: (habits: Habit[]) => void) {
   const q = query(
     collection(db, 'habit'),
     where('userId', '==', userId),
+    where('isDeleted', '==', false),
     orderBy('createdAt', 'desc')
   )
   

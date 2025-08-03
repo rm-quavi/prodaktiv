@@ -72,11 +72,6 @@ export default function HomePage() {
     }
   }
 
-  const completedTodos = todos.filter(todo => todo.status === 'Done')
-  const pendingTodos = todos.filter(todo => todo.status === 'Todo')
-  const completedHabits = habits.filter(habit => habit.status === 'Done')
-  const pendingHabits = habits.filter(habit => habit.status === 'Todo')
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

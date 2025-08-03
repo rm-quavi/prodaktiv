@@ -7,7 +7,7 @@ import { auth } from '@/firebase/firebaseConfig'
 import { createUser } from '@/lib/firestoreUtils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle, Target, Mail, Lock, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {

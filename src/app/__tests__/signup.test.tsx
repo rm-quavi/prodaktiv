@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithPopup, onAuthStateChanged, User } from 'firebase/auth'
 import { createUser } from '@/lib/firestoreUtils'
 import SignupPage from '../signup/page'
 
@@ -85,7 +85,7 @@ describe('SignupPage', () => {
       
       mockCreateUserWithEmailAndPassword.mockResolvedValue({
         user: mockUser,
-      } as any)
+      } as ReturnType<typeof createUserWithEmailAndPassword>)
       
       mockCreateUser.mockResolvedValue(undefined)
       
@@ -183,7 +183,7 @@ describe('SignupPage', () => {
       
       mockSignInWithPopup.mockResolvedValue({
         user: mockUser,
-      } as any)
+      } as ReturnType<typeof signInWithPopup>)
       
       mockCreateUser.mockResolvedValue(undefined)
       

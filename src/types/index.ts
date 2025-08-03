@@ -11,13 +11,14 @@ export interface Todo {
   userId: string
   title: string
   description: string
-  deadline: Date
+  deadline?: Date | null
   status: 'Todo' | 'Done'
   priority: 'Low' | 'Medium' | 'High'
   recurring?: {
     type: 'weekly' | 'monthly'
     times: number
   }
+  isDeleted: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -31,6 +32,7 @@ export interface Habit {
   status: 'Todo' | 'Done'
   streak: number
   lastCompletedDate?: Date
+  isDeleted: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -38,7 +40,7 @@ export interface Habit {
 export interface TodoFormData {
   title: string
   description: string
-  deadline: Date
+  deadline?: Date | null
   priority: 'Low' | 'Medium' | 'High'
   recurring?: {
     type: 'weekly' | 'monthly'
