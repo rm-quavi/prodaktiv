@@ -8,6 +8,7 @@ import { subscribeToTodos, subscribeToHabits } from '@/lib/firestoreUtils'
 import { Todo, Habit } from '@/types'
 import { AppBar } from '@/components/AppBar'
 import { FloatingButton } from '@/components/FloatingButton'
+import { ChatBot } from '@/components/ChatBot'
 import { TodoItem } from '@/components/TodoItem'
 import { HabitsList } from '@/components/HabitsList'
 import { TodoForm } from '@/components/TodoForm'
@@ -38,6 +39,7 @@ export default function HomePage() {
   const [habits, setHabits] = useState<Habit[]>([])
   const [isTodoFormOpen, setIsTodoFormOpen] = useState(false)
   const [isHabitFormOpen, setIsHabitFormOpen] = useState(false)
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
   const [activeTab, setActiveTab] = useState('todos')
   const [isLoading, setIsLoading] = useState(true)
   const [isTodosLoading, setIsTodosLoading] = useState(false)
@@ -81,10 +83,21 @@ export default function HomePage() {
 
   const handleFloatingButtonClick = () => {
     if (activeTab === 'todos') {
+      setEditingTodo(null) // Reset editing state for new todo
       setIsTodoFormOpen(true)
     } else {
       setIsHabitFormOpen(true)
     }
+  }
+
+  const handleEditTodo = (todo: Todo) => {
+    setEditingTodo(todo)
+    setIsTodoFormOpen(true)
+  }
+
+  const handleCloseTodoForm = () => {
+    setIsTodoFormOpen(false)
+    setEditingTodo(null) // Reset editing state
   }
 
   if (isLoading) {
@@ -143,7 +156,7 @@ export default function HomePage() {
                 />
               ) : (
                 todos.map((todo) => (
-                  <TodoItem key={todo.id} todo={todo} />
+                  <TodoItem key={todo.id} todo={todo} onEdit={handleEditTodo} />
                 ))
               )}
             </div>
@@ -155,6 +168,7 @@ export default function HomePage() {
               habits={habits} 
               isLoading={isHabitsLoading}
               onAddClick={() => setIsHabitFormOpen(true)}
+              userId={user?.uid || ''}
             />
           </TabsContent>
         </Tabs>
@@ -165,10 +179,13 @@ export default function HomePage() {
         className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl"
       />
 
+      <ChatBot isVisible={!!user} />
+
       <TodoForm
         isOpen={isTodoFormOpen}
-        onClose={() => setIsTodoFormOpen(false)}
+        onClose={handleCloseTodoForm}
         userId={user?.uid || ''}
+        todo={editingTodo}
       />
 
       <HabitForm

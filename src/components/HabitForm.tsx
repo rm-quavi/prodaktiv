@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { HabitFormData } from '@/types'
-import { addHabit } from '@/lib/firestoreUtils'
+import { Habit, HabitFormData } from '@/types'
+import { addHabit, updateHabit } from '@/lib/firestoreUtils'
 
 interface HabitFormProps {
   isOpen: boolean
   onClose: () => void
   userId: string
+  habit?: Habit | null // Optional habit for edit mode
 }
 
 const WEEKDAYS = [
@@ -24,7 +25,7 @@ const WEEKDAYS = [
   { value: 'sunday', label: 'Sunday' },
 ]
 
-export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
+export function HabitForm({ isOpen, onClose, userId, habit }: HabitFormProps) {
   const [formData, setFormData] = useState<HabitFormData>({
     title: '',
     recurrence: 'daily',
@@ -32,6 +33,29 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
     weekdays: [],
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Determine if we're in edit mode
+  const isEditMode = !!habit
+
+  // Populate form data when habit changes (edit mode)
+  useEffect(() => {
+    if (habit) {
+      setFormData({
+        title: habit.title,
+        recurrence: habit.recurrence,
+        timeOfDay: habit.timeOfDay,
+        weekdays: habit.weekdays || [],
+      })
+    } else {
+      // Reset form for create mode
+      setFormData({
+        title: '',
+        recurrence: 'daily',
+        timeOfDay: 'Daily',
+        weekdays: [],
+      })
+    }
+  }, [habit])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,16 +68,28 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
 
     setIsSubmitting(true)
     try {
-      await addHabit(userId, formData)
-      setFormData({
-        title: '',
-        recurrence: 'daily',
-        timeOfDay: 'Daily',
-        weekdays: [],
-      })
+      if (isEditMode && habit) {
+        // Update existing habit
+        await updateHabit(habit.id, {
+          title: formData.title,
+          recurrence: formData.recurrence,
+          timeOfDay: formData.timeOfDay,
+          weekdays: formData.weekdays,
+        })
+      } else {
+        // Create new habit
+        await addHabit(userId, formData)
+        // Reset form only for create mode
+        setFormData({
+          title: '',
+          recurrence: 'daily',
+          timeOfDay: 'Daily',
+          weekdays: [],
+        })
+      }
       onClose()
     } catch (error) {
-      console.error('Error adding habit:', error)
+      console.error(`Error ${isEditMode ? 'updating' : 'adding'} habit:`, error)
     } finally {
       setIsSubmitting(false)
     }
@@ -79,7 +115,9 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md rounded-2xl border-gray-100">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900">Add New Habit</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            {isEditMode ? 'Edit Habit' : 'Add New Habit'}
+          </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -179,7 +217,10 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
               disabled={isSubmitting || !formData.title.trim() || (formData.recurrence === 'weekly' && (!formData.weekdays || formData.weekdays.length === 0))}
               className="modern-button bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl"
             >
-              {isSubmitting ? 'Adding...' : 'Add Habit'}
+              {isSubmitting 
+                ? (isEditMode ? 'Updating...' : 'Adding...') 
+                : (isEditMode ? 'Update Habit' : 'Add Habit')
+              }
             </Button>
           </div>
         </form>

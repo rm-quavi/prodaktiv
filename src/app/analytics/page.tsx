@@ -7,6 +7,7 @@ import { auth } from '@/firebase/firebaseConfig'
 import { subscribeToTodos, subscribeToHabits } from '@/lib/firestoreUtils'
 import { Todo, Habit } from '@/types'
 import { AppBar } from '@/components/AppBar'
+import { ChatBot } from '@/components/ChatBot'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Bar, Line, Doughnut } from 'react-chartjs-2'
 import {
@@ -199,9 +200,9 @@ export default function AnalyticsPage() {
       <AppBar />
       
       <main className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-          <p className="text-gray-600 mt-2">Track your productivity and habit progress</p>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Analytics</h1>
+          <p className="text-gray-600">Track your productivity progress</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -359,6 +360,8 @@ export default function AnalyticsPage() {
           </Card>
         </div>
       </main>
+
+      <ChatBot isVisible={!!user} />
     </div>
   )
 } 

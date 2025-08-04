@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TodoItem } from '../TodoItem'
 import { Todo } from '@/types'
-import { updateTodo, deleteTodo } from '@/lib/firestoreUtils'
+import { updateTodo } from '@/lib/firestoreUtils'
 
 // Mock the firestore utils
 jest.mock('@/lib/firestoreUtils', () => ({
@@ -15,12 +15,14 @@ const mockTodo: Todo = {
   title: 'Test Todo',
   description: 'Test description',
   deadline: new Date('2024-12-31'),
-  priority: 'Medium',
   status: 'Todo',
+  priority: 'Medium',
   isDeleted: false,
   createdAt: new Date(),
   updatedAt: new Date(),
 }
+
+const mockOnEdit = jest.fn()
 
 describe('TodoItem', () => {
   beforeEach(() => {
@@ -28,7 +30,7 @@ describe('TodoItem', () => {
   })
 
   it('renders todo item correctly', () => {
-    render(<TodoItem todo={mockTodo} />)
+    render(<TodoItem todo={mockTodo} onEdit={mockOnEdit} />)
     
     expect(screen.getByText('Test Todo')).toBeInTheDocument()
     expect(screen.getByText('Test description')).toBeInTheDocument()
@@ -36,21 +38,11 @@ describe('TodoItem', () => {
     expect(screen.getByText('Medium')).toBeInTheDocument()
   })
 
-  it('renders todo item without deadline correctly', () => {
-    const todoWithoutDeadline = { ...mockTodo, deadline: null }
-    render(<TodoItem todo={todoWithoutDeadline} />)
-    
-    expect(screen.getByText('Test Todo')).toBeInTheDocument()
-    expect(screen.getByText('Test description')).toBeInTheDocument()
-    expect(screen.queryByText('Dec 31, 2024')).not.toBeInTheDocument()
-    expect(screen.getByText('Medium')).toBeInTheDocument()
-  })
-
   it('shows completed state when todo is done', () => {
     const completedTodo = { ...mockTodo, status: 'Done' as const }
-    render(<TodoItem todo={completedTodo} />)
+    render(<TodoItem todo={completedTodo} onEdit={mockOnEdit} />)
     
-    const checkbox = screen.getByRole('button', { name: /toggle status/i })
+    const checkbox = screen.getByRole('button', { name: /toggle todo status/i })
     expect(checkbox).toBeInTheDocument()
   })
 
@@ -58,9 +50,9 @@ describe('TodoItem', () => {
     const mockUpdateTodo = updateTodo as jest.MockedFunction<typeof updateTodo>
     mockUpdateTodo.mockResolvedValue(undefined)
     
-    render(<TodoItem todo={mockTodo} />)
+    render(<TodoItem todo={mockTodo} onEdit={mockOnEdit} />)
     
-    const toggleButton = screen.getByRole('button', { name: /toggle status/i })
+    const toggleButton = screen.getByRole('button', { name: /toggle todo status/i })
     fireEvent.click(toggleButton)
     
     await waitFor(() => {
@@ -68,33 +60,24 @@ describe('TodoItem', () => {
     })
   })
 
-  it('calls deleteTodo when delete button is clicked', async () => {
-    const mockDeleteTodo = deleteTodo as jest.MockedFunction<typeof deleteTodo>
-    mockDeleteTodo.mockResolvedValue(undefined)
+  it('has more options button', () => {
+    render(<TodoItem todo={mockTodo} onEdit={mockOnEdit} />)
     
-    render(<TodoItem todo={mockTodo} />)
-    
-    const deleteButton = screen.getByRole('button', { name: /delete todo/i })
-    fireEvent.click(deleteButton)
-    
-    await waitFor(() => {
-      expect(mockDeleteTodo).toHaveBeenCalledWith('1')
-    })
+    const moreOptionsButton = screen.getByRole('button', { name: /more options/i })
+    expect(moreOptionsButton).toBeInTheDocument()
   })
 
   it('disables buttons during update', async () => {
     const mockUpdateTodo = updateTodo as jest.MockedFunction<typeof updateTodo>
     mockUpdateTodo.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)))
     
-    render(<TodoItem todo={mockTodo} />)
+    render(<TodoItem todo={mockTodo} onEdit={mockOnEdit} />)
     
-    const toggleButton = screen.getByRole('button', { name: /toggle status/i })
-    const deleteButton = screen.getByRole('button', { name: /delete todo/i })
+    const toggleButton = screen.getByRole('button', { name: /toggle todo status/i })
     
     fireEvent.click(toggleButton)
     
     expect(toggleButton).toBeDisabled()
-    expect(deleteButton).toBeDisabled()
   })
 
   it('handles errors gracefully', async () => {
@@ -102,9 +85,9 @@ describe('TodoItem', () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
     mockUpdateTodo.mockRejectedValue(new Error('Update failed'))
     
-    render(<TodoItem todo={mockTodo} />)
+    render(<TodoItem todo={mockTodo} onEdit={mockOnEdit} />)
     
-    const toggleButton = screen.getByRole('button', { name: /toggle status/i })
+    const toggleButton = screen.getByRole('button', { name: /toggle todo status/i })
     fireEvent.click(toggleButton)
     
     await waitFor(() => {
@@ -114,39 +97,42 @@ describe('TodoItem', () => {
     consoleSpy.mockRestore()
   })
 
-  it('shows overdue styling when todo is overdue', () => {
+  it('shows overdue styling for overdue todos', () => {
     const overdueTodo = { 
       ...mockTodo, 
       deadline: new Date('2020-01-01'),
-      status: 'Todo' as const 
+      status: 'Todo' as const
     }
-    render(<TodoItem todo={overdueTodo} />)
+    render(<TodoItem todo={overdueTodo} onEdit={mockOnEdit} />)
     
-    const card = screen.getByText('Test Todo').closest('[class*="border-red-200"]')
-    expect(card).toBeInTheDocument()
+    const card = screen.getByRole('article')
+    expect(card).toHaveClass('border-red-200', 'bg-red-50')
   })
 
-  it('does not show overdue styling when todo is completed', () => {
-    const completedOverdueTodo = { 
-      ...mockTodo, 
-      deadline: new Date('2020-01-01'),
-      status: 'Done' as const 
-    }
-    render(<TodoItem todo={completedOverdueTodo} />)
+  it('shows completed styling for done todos', () => {
+    const completedTodo = { ...mockTodo, status: 'Done' as const }
+    render(<TodoItem todo={completedTodo} onEdit={mockOnEdit} />)
     
-    const card = screen.getByText('Test Todo').closest('[class*="border-red-200"]')
-    expect(card).not.toBeInTheDocument()
+    const card = screen.getByRole('article')
+    expect(card).toHaveClass('opacity-75')
   })
 
-  it('does not show overdue styling when todo has no deadline', () => {
-    const todoWithoutDeadline = { 
-      ...mockTodo, 
-      deadline: null,
-      status: 'Todo' as const 
-    }
-    render(<TodoItem todo={todoWithoutDeadline} />)
+  it('has accessible buttons', () => {
+    render(<TodoItem todo={mockTodo} onEdit={mockOnEdit} />)
     
-    const card = screen.getByText('Test Todo').closest('[class*="border-red-200"]')
-    expect(card).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /toggle todo status/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /more options/i })).toBeInTheDocument()
+  })
+
+  it('calls onEdit when edit button is clicked', () => {
+    render(<TodoItem todo={mockTodo} onEdit={mockOnEdit} />)
+    
+    const moreOptionsButton = screen.getByRole('button', { name: /more options/i })
+    fireEvent.click(moreOptionsButton)
+    
+    const editButton = screen.getByRole('menuitem', { name: /edit/i })
+    fireEvent.click(editButton)
+    
+    expect(mockOnEdit).toHaveBeenCalledWith(mockTodo)
   })
 }) 

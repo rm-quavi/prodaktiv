@@ -1,21 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { DateTimeInput } from '@/components/DateTimeInput'
-import { TodoFormData } from '@/types'
-import { addTodo } from '@/lib/firestoreUtils'
+import { TodoFormData, Todo } from '@/types'
+import { addTodo, updateTodo } from '@/lib/firestoreUtils'
 
 interface TodoFormProps {
   isOpen: boolean
   onClose: () => void
   userId: string
+  todo?: Todo | null // Optional todo for edit mode
 }
 
-export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
+export function TodoForm({ isOpen, onClose, userId, todo }: TodoFormProps) {
   const [formData, setFormData] = useState<TodoFormData>({
     title: '',
     description: '',
@@ -24,25 +25,59 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Determine if we're in edit mode
+  const isEditMode = !!todo
+
+  // Populate form data when todo changes (edit mode)
+  useEffect(() => {
+    if (todo) {
+      setFormData({
+        title: todo.title,
+        description: todo.description,
+        deadline: todo.deadline || null,
+        priority: todo.priority,
+      })
+    } else {
+      // Reset form for create mode
+      setFormData({
+        title: '',
+        description: '',
+        deadline: null,
+        priority: 'High',
+      })
+    }
+  }, [todo])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.title.trim()) return
 
     setIsSubmitting(true)
     try {
-      await addTodo(userId, {
-        ...formData,
-        deadline: formData.deadline ? new Date(formData.deadline) : null,
-      })
+      if (isEditMode && todo) {
+        // Update existing todo
+        await updateTodo(todo.id, {
+          ...formData,
+          deadline: formData.deadline ? new Date(formData.deadline) : null,
+        })
+      } else {
+        // Create new todo
+        await addTodo(userId, {
+          ...formData,
+          deadline: formData.deadline ? new Date(formData.deadline) : null,
+        })
+      }
+      
+      // Reset form
       setFormData({
         title: '',
         description: '',
         deadline: null,
-        priority: 'Medium',
+        priority: 'High',
       })
       onClose()
     } catch (error) {
-      console.error('Error adding todo:', error)
+      console.error('Error saving todo:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -59,7 +94,9 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md rounded-2xl border-gray-100">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900">Add New Task</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            {isEditMode ? 'Edit Task' : 'Add New Task'}
+          </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -147,7 +184,7 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
               disabled={isSubmitting || !formData.title.trim()}
               className="modern-button bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-xl"
             >
-              {isSubmitting ? 'Adding...' : 'Add Task'}
+              {isSubmitting ? (isEditMode ? 'Updating...' : 'Adding...') : (isEditMode ? 'Update Task' : 'Add Task')}
             </Button>
           </div>
         </form>

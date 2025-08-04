@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, Clock, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -109,18 +109,15 @@ export function DateTimeInput({ value, onChange, placeholder = "Set deadline", c
           </span>
         </div>
         {value && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
+          <div
             onClick={(e) => {
               e.stopPropagation()
               handleClear()
             }}
-            className="h-6 w-6 p-0 hover:bg-gray-100"
+            className="h-6 w-6 p-0 hover:bg-gray-100 rounded flex items-center justify-center cursor-pointer"
           >
             <X className="h-3 w-3" />
-          </Button>
+          </div>
         )}
       </Button>
 

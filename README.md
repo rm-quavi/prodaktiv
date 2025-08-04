@@ -38,6 +38,29 @@ A modern, mobile-first productivity web application that combines **Todo Managem
 - **Smooth animations** and transitions
 - **Accessible components** with proper ARIA labels
 
+## 🤖 AI Productivity Assistant
+
+The app includes an intelligent AI chatbot powered by DeepSeek API that provides personalized productivity advice:
+
+- **Contextual Responses**: Understands your specific productivity challenges
+- **Expert Guidance**: Offers proven techniques for time management, habit formation, and goal setting
+- **Always Available**: Accessible via floating action button on all authenticated pages
+- **Privacy-First**: Conversations are processed securely and not stored permanently
+- **Fallback Support**: Graceful handling when AI service is unavailable
+
+**To enable the AI chatbot:**
+1. Get a DeepSeek API key from [DeepSeek Platform](https://platform.deepseek.com/)
+2. Add `DEEPSEEK_API_KEY=your_api_key` to your `.env.local` file
+3. Restart your development server
+
+The chatbot specializes in productivity topics including:
+- Time management techniques (Pomodoro, time blocking)
+- Goal setting frameworks (SMART goals, OKRs)
+- Habit formation strategies (atomic habits, habit stacking)
+- Focus and concentration techniques
+- Task prioritization methods (Eisenhower Matrix)
+- Work-life balance strategies
+
 ## 🛠️ Tech Stack
 
 | Purpose | Technology |
@@ -197,6 +220,9 @@ npm test -- src/lib/__tests__/streakUtils.test.ts
    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   
+   # DeepSeek API for AI Chatbot
+   DEEPSEEK_API_KEY=your_deepseek_api_key
    ```
 
 5. **Run the development server**

@@ -9,6 +9,7 @@ interface HabitsListProps {
   habits: Habit[]
   isLoading: boolean
   onAddClick: () => void
+  userId: string
 }
 
 // Helper function to get current day of week in lowercase
@@ -80,7 +81,7 @@ const groupHabitsByTimeOfDay = (habits: Habit[]) => {
   })).filter(section => section.habits.length > 0)
 }
 
-export function HabitsList({ habits, isLoading, onAddClick }: HabitsListProps) {
+export function HabitsList({ habits, isLoading, onAddClick, userId }: HabitsListProps) {
   const filteredHabits = filterHabitsForToday(habits)
   const hiddenWeeklyHabitsCount = getHiddenWeeklyHabitsCount(habits)
 
@@ -120,7 +121,7 @@ export function HabitsList({ habits, isLoading, onAddClick }: HabitsListProps) {
             </div>
             <div className="space-y-3">
               {section.habits.map((habit) => (
-                <HabitItem key={habit.id} habit={habit} />
+                <HabitItem key={habit.id} habit={habit} userId={userId} />
               ))}
             </div>
           </div>
