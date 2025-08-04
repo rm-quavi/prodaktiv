@@ -17,6 +17,75 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle, Target } from 'lucide-react'
 
+// Helper function to get current day of week in lowercase
+const getCurrentDayOfWeek = (): string => {
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+  return days[new Date().getDay()]
+}
+
+// Helper function to filter habits based on current day
+const filterHabitsForToday = (habits: Habit[]): Habit[] => {
+  const currentDay = getCurrentDayOfWeek()
+  
+  return habits.filter(habit => {
+    // Show daily habits always
+    if (habit.recurrence === 'daily') return true
+    
+    // Show monthly habits always (they don't have specific weekdays)
+    if (habit.recurrence === 'monthly') return true
+    
+    // For weekly habits, only show if today is in their weekdays array
+    if (habit.recurrence === 'weekly' && habit.weekdays) {
+      return habit.weekdays.includes(currentDay)
+    }
+    
+    // Default to showing if no weekdays specified (fallback for weekly habits without weekdays)
+    return true
+  })
+}
+
+// Helper function to count hidden weekly habits
+const getHiddenWeeklyHabitsCount = (habits: Habit[]): number => {
+  const currentDay = getCurrentDayOfWeek()
+  
+  return habits.filter(habit => 
+    habit.recurrence === 'weekly' && 
+    habit.weekdays && 
+    !habit.weekdays.includes(currentDay)
+  ).length
+}
+
+// Helper function to group habits by time of day
+const groupHabitsByTimeOfDay = (habits: Habit[]) => {
+  const timeOrder = ['Morning', 'Lunch', 'Afternoon', 'Evening', 'Daily']
+  const timeIcons = {
+    Morning: '🌅',
+    Lunch: '🍽️',
+    Afternoon: '☀️',
+    Evening: '🌙',
+    Daily: '📅',
+  }
+  const grouped = {
+    Morning: [] as Habit[],
+    Lunch: [] as Habit[],
+    Afternoon: [] as Habit[],
+    Evening: [] as Habit[],
+    Daily: [] as Habit[],
+  }
+  
+  habits.forEach(habit => {
+    if (grouped[habit.timeOfDay]) {
+      grouped[habit.timeOfDay].push(habit)
+    }
+  })
+  
+  return timeOrder.map(time => ({
+    time,
+    icon: timeIcons[time as keyof typeof timeIcons],
+    habits: grouped[time as keyof typeof grouped]
+  })).filter(section => section.habits.length > 0)
+}
+
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null)
   const [todos, setTodos] = useState<Todo[]>([])
@@ -88,8 +157,8 @@ export default function HomePage() {
       <AppBar />
       
       <main className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back!</h1>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">Welcome back!</h1>
           <p className="text-gray-600">Let&apos;s get productive today</p>
         </div>
 
@@ -107,7 +176,7 @@ export default function HomePage() {
               className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
             >
               <Target className="h-4 w-4" />
-              <span>Habits ({habits.length})</span>
+              <span>Habits ({filterHabitsForToday(habits).length})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -144,17 +213,46 @@ export default function HomePage() {
                     <p className="text-gray-600">Loading habits...</p>
                   </CardContent>
                 </Card>
-              ) : habits.length === 0 ? (
+              ) : filterHabitsForToday(habits).length === 0 ? (
                 <EmptyStateCard 
                   type="habits" 
                   onAddClick={() => setIsHabitFormOpen(true)} 
                 />
               ) : (
-                habits.map((habit) => (
-                  <HabitItem key={habit.id} habit={habit} />
+                groupHabitsByTimeOfDay(filterHabitsForToday(habits)).map((section) => (
+                  <div key={section.time} className="space-y-4">
+                    <div className="flex items-center space-x-3 pt-6 first:pt-0">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                        <span className="mr-2 text-xl">{section.icon}</span> {section.time}
+                      </h3>
+                      <div className="flex-1 h-px bg-gray-200"></div>
+                      <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                        {section.habits.length} habit{section.habits.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {section.habits.map((habit) => (
+                        <HabitItem key={habit.id} habit={habit} />
+                      ))}
+                    </div>
+                  </div>
                 ))
               )}
             </div>
+            
+            {/* Info about hidden weekly habits */}
+            {!isHabitsLoading && habits.length > 0 && getHiddenWeeklyHabitsCount(habits) > 0 && (
+              <Card className="modern-card border-blue-200 bg-blue-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-2 text-sm text-blue-700">
+                    <span>ℹ️</span>
+                    <span>
+                      {getHiddenWeeklyHabitsCount(habits)} weekly habit{getHiddenWeeklyHabitsCount(habits) !== 1 ? 's' : ''} hidden for today
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </main>

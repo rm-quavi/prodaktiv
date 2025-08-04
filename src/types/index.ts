@@ -29,6 +29,7 @@ export interface Habit {
   title: string
   recurrence: 'daily' | 'weekly' | 'monthly'
   timeOfDay: 'Morning' | 'Lunch' | 'Afternoon' | 'Evening' | 'Daily'
+  weekdays?: string[]
   status: 'Todo' | 'Done'
   streak: number
   lastCompletedDate?: Date
@@ -52,4 +53,5 @@ export interface HabitFormData {
   title: string
   recurrence: 'daily' | 'weekly' | 'monthly'
   timeOfDay: 'Morning' | 'Lunch' | 'Afternoon' | 'Evening' | 'Daily'
+  weekdays?: string[]
 } 

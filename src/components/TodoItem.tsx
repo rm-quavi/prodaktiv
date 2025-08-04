@@ -67,24 +67,9 @@ export function TodoItem({ todo }: TodoItemProps) {
     <Card className={`modern-card transition-all duration-200 hover:shadow-md ${
       todo.status === 'Done' ? 'opacity-75' : ''
     } ${isOverdue ? 'border-red-200 bg-red-50' : ''}`}>
-      <CardContent className="p-4 px-2">
+      <CardContent className="p-4 pt-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-4 flex-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleToggleStatus}
-              disabled={isUpdating}
-              className="mt-1 h-8 w-8 p-0 rounded-xl hover:bg-gray-100"
-              aria-label="Toggle status"
-            >
-              {todo.status === 'Done' ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
-              ) : (
-                <Circle className="h-5 w-5 text-gray-400" />
-              )}
-            </Button>
-            
             <div className="flex-1 min-w-0">
               <h3 className={`font-semibold text-base ${
                 todo.status === 'Done' ? 'line-through text-gray-500' : 'text-gray-900'
@@ -117,17 +102,6 @@ export function TodoItem({ todo }: TodoItemProps) {
               </div>
             </div>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDelete}
-            disabled={isUpdating}
-            className="h-10 w-10 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl"
-            aria-label="Delete todo"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         </div>
       </CardContent>
     </Card>

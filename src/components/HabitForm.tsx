@@ -14,17 +14,33 @@ interface HabitFormProps {
   userId: string
 }
 
+const WEEKDAYS = [
+  { value: 'monday', label: 'Monday' },
+  { value: 'tuesday', label: 'Tuesday' },
+  { value: 'wednesday', label: 'Wednesday' },
+  { value: 'thursday', label: 'Thursday' },
+  { value: 'friday', label: 'Friday' },
+  { value: 'saturday', label: 'Saturday' },
+  { value: 'sunday', label: 'Sunday' },
+]
+
 export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
   const [formData, setFormData] = useState<HabitFormData>({
     title: '',
     recurrence: 'daily',
     timeOfDay: 'Daily',
+    weekdays: [],
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.title.trim()) return
+    
+    // Validate weekdays for weekly recurrence
+    if (formData.recurrence === 'weekly' && (!formData.weekdays || formData.weekdays.length === 0)) {
+      return
+    }
 
     setIsSubmitting(true)
     try {
@@ -33,6 +49,7 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
         title: '',
         recurrence: 'daily',
         timeOfDay: 'Daily',
+        weekdays: [],
       })
       onClose()
     } catch (error) {
@@ -46,6 +63,15 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
     setFormData(prev => ({
       ...prev,
       [field]: value,
+    }))
+  }
+
+  const handleWeekdayToggle = (weekday: string) => {
+    setFormData(prev => ({
+      ...prev,
+      weekdays: prev.weekdays?.includes(weekday)
+        ? prev.weekdays.filter(w => w !== weekday)
+        : [...(prev.weekdays || []), weekday],
     }))
   }
 
@@ -79,7 +105,7 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
               value={formData.timeOfDay}
               onValueChange={(value: string) => handleInputChange('timeOfDay', value as HabitFormData['timeOfDay'])}
             >
-              <SelectTrigger className="modern-select">
+              <SelectTrigger className="modern-select w-full">
                 <SelectValue placeholder="Select time of day" />
               </SelectTrigger>
               <SelectContent>
@@ -100,7 +126,7 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
               value={formData.recurrence}
               onValueChange={(value: string) => handleInputChange('recurrence', value as HabitFormData['recurrence'])}
             >
-              <SelectTrigger className="modern-select">
+              <SelectTrigger className="modern-select w-full">
                 <SelectValue placeholder="Select recurrence" />
               </SelectTrigger>
               <SelectContent>
@@ -111,7 +137,34 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
             </Select>
           </div>
           
-          <div className="flex justify-end space-x-3 pt-6">
+          {formData.recurrence === 'weekly' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Weekdays
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {WEEKDAYS.map((weekday) => (
+                  <button
+                    key={weekday.value}
+                    type="button"
+                    onClick={() => handleWeekdayToggle(weekday.value)}
+                    className={`p-3 text-sm font-medium rounded-lg border transition-colors ${
+                      formData.weekdays?.includes(weekday.value)
+                        ? 'bg-purple-100 border-purple-300 text-purple-700'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {weekday.label}
+                  </button>
+                ))}
+              </div>
+              {formData.weekdays && formData.weekdays.length === 0 && (
+                <p className="text-sm text-gray-500 mt-4 text-center">Please select at least one weekday</p>
+              )}
+            </div>
+          )}
+          
+          <div className="flex justify-end space-x-3 pt-4">
             <Button
               type="button"
               variant="outline"
@@ -123,7 +176,7 @@ export function HabitForm({ isOpen, onClose, userId }: HabitFormProps) {
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !formData.title.trim()}
+              disabled={isSubmitting || !formData.title.trim() || (formData.recurrence === 'weekly' && (!formData.weekdays || formData.weekdays.length === 0))}
               className="modern-button bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl"
             >
               {isSubmitting ? 'Adding...' : 'Add Habit'}

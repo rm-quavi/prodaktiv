@@ -15,6 +15,7 @@ const mockHabit: Habit = {
   title: 'Test Habit',
   recurrence: 'daily',
   timeOfDay: 'Morning',
+  weekdays: [],
   status: 'Todo',
   streak: 5,
   isDeleted: false,
@@ -42,6 +43,17 @@ describe('HabitItem', () => {
     
     const checkbox = screen.getByRole('button', { name: /toggle status/i })
     expect(checkbox).toBeInTheDocument()
+  })
+
+  it('displays weekdays for weekly habits', () => {
+    const weeklyHabit = { 
+      ...mockHabit, 
+      recurrence: 'weekly' as const,
+      weekdays: ['monday', 'wednesday', 'friday']
+    }
+    render(<HabitItem habit={weeklyHabit} />)
+    
+    expect(screen.getByText('Mon, Wed, Fri')).toBeInTheDocument()
   })
 
   it('calls updateHabit when toggle button is clicked', async () => {

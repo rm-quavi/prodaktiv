@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { DateTimeInput } from '@/components/DateTimeInput'
 import { TodoFormData } from '@/types'
 import { addTodo } from '@/lib/firestoreUtils'
 
@@ -19,7 +20,7 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
     title: '',
     description: '',
     deadline: null,
-    priority: 'Medium',
+    priority: 'High',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -64,7 +65,8 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-              Title *
+              Title
+              <span className="text-red-500">*</span>
             </label>
             <Input
               id="title"
@@ -90,35 +92,44 @@ export function TodoForm({ isOpen, onClose, userId }: TodoFormProps) {
           </div>
           
           <div>
-            <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Deadline (optional)
             </label>
-            <Input
-              id="deadline"
-              type="datetime-local"
-              value={formData.deadline instanceof Date ? formData.deadline.toISOString().slice(0, 16) : ''}
-              onChange={(e) => handleInputChange('deadline', e.target.value ? new Date(e.target.value) : null)}
-              className="modern-input"
+            <DateTimeInput
+              value={formData.deadline || null}
+              onChange={(date) => handleInputChange('deadline', date)}
+              placeholder="Set deadline"
             />
           </div>
           
           <div>
-            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
               Priority
             </label>
-            <Select
+            <RadioGroup
               value={formData.priority}
               onValueChange={(value: string) => handleInputChange('priority', value as 'Low' | 'Medium' | 'High')}
+              className="grid grid-cols-3 gap-3"
             >
-              <SelectTrigger className="modern-select">
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Low">Low</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="High">High</SelectItem>
-              </SelectContent>
-            </Select>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Low" id="priority-low" />
+                <label htmlFor="priority-low" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Low
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Medium" id="priority-medium" />
+                <label htmlFor="priority-medium" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Medium
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="High" id="priority-high" />
+                <label htmlFor="priority-high" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  High
+                </label>
+              </div>
+            </RadioGroup>
           </div>
           
           <div className="flex justify-end space-x-3 pt-6">
